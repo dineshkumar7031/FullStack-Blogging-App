@@ -65,7 +65,7 @@ resource "aws_security_group" "dinesh_cluster_sg" {
 }
 
 resource "aws_security_group" "dinesh_node_sg" {
-  vpc_id = aws_vpc.devopsshack_vpc.id
+  vpc_id = aws_vpc.dinesh_vpc.id
 
   ingress {
     from_port   = 0
