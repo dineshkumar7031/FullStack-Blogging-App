@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "ap-south-1"
+  region = "us-west-1"
 }
 
 resource "aws_vpc" "dinu_vpc" {
@@ -14,7 +14,7 @@ resource "aws_subnet" "dinu_subnet" {
   count = 2
   vpc_id                  = aws_vpc.dinu_vpc.id
   cidr_block              = cidrsubnet(aws_vpc.dinu_vpc.cidr_block, 8, count.index)
-  availability_zone       = element(["ap-south-1a", "us-west-1"], count.index)
+  availability_zone       = element(["us-west-ib", "us-west-1c"], count.index)
   map_public_ip_on_launch = true
 
   tags = {
