@@ -1,56 +1,56 @@
 provider "aws" {
-  region = "us-west-1"
+  region = "us-east-1"
 }
 
-resource "aws_vpc" "my_vpc" {
+resource "aws_vpc" "no_vpc" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "my-vpc"
+    Name = "no-vpc"
   }
 }
 
-resource "aws_subnet" "my_subnet" {
+resource "aws_subnet" "no_subnet" {
   count = 2
-  vpc_id                  = aws_vpc.my_vpc.id
-  cidr_block              = cidrsubnet(aws_vpc.my_vpc.cidr_block, 8, count.index)
-  availability_zone       = element(["us-west-1b", "us-west-1c"], count.index)
+  vpc_id                  = aws_vpc.no_vpc.id
+  cidr_block              = cidrsubnet(aws_vpc.no_vpc.cidr_block, 8, count.index)
+  availability_zone       = element(["us-east-1a", "us-east-1b"], count.index)
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "my-subnet-${count.index}"
+    Name = "no-subnet-${count.index}"
   }
 }
 
-resource "aws_internet_gateway" "my_igw" {
-  vpc_id = aws_vpc.my_vpc.id
+resource "aws_internet_gateway" "no_igw" {
+  vpc_id = aws_vpc.no_vpc.id
 
   tags = {
-    Name = "my-igw"
+    Name = "no-igw"
   }
 }
 
-resource "aws_route_table" "my_route_table" {
-  vpc_id = aws_vpc.my_vpc.id
+resource "aws_route_table" "no_route_table" {
+  vpc_id = aws_vpc.no_vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.my_igw.id
+    gateway_id = aws_internet_gateway.no_igw.id
   }
 
   tags = {
-    Name = "my-route-table"
+    Name = "no-route-table"
   }
 }
 
 resource "aws_route_table_association" "a" {
   count          = 2
   subnet_id      = aws_subnet.my_subnet[count.index].id
-  route_table_id = aws_route_table.my_route_table.id
+  route_table_id = aws_route_table.no_route_table.id
 }
 
-resource "aws_security_group" "my_cluster_sg" {
-  vpc_id = aws_vpc.my_vpc.id
+resource "aws_security_group" "no_cluster_sg" {
+  vpc_id = aws_vpc.no_vpc.id
 
   egress {
     from_port   = 0
@@ -60,12 +60,12 @@ resource "aws_security_group" "my_cluster_sg" {
   }
 
   tags = {
-    Name = "my-cluster-sg"
+    Name = "no-cluster-sg"
   }
 }
 
-resource "aws_security_group" "my_node_sg" {
-  vpc_id = aws_vpc.my_vpc.id
+resource "aws_security_group" "no_node_sg" {
+  vpc_id = aws_vpc.no_vpc.id
 
   ingress {
     from_port   = 0
@@ -82,24 +82,24 @@ resource "aws_security_group" "my_node_sg" {
   }
 
   tags = {
-    Name = "my-node-sg"
+    Name = "no-node-sg"
   }
 }
 
-resource "aws_eks_cluster" "my" {
-  name     = "my-cluster"
-  role_arn = aws_iam_role.my_cluster_role.arn
+resource "aws_eks_cluster" "no" {
+  name     = "no-cluster"
+  role_arn = aws_iam_role.no_cluster_role.arn
 
   vpc_config {
-    subnet_ids         = aws_subnet.my_subnet[*].id
-    security_group_ids = [aws_security_group.my_cluster_sg.id]
+    subnet_ids         = aws_subnet.no_subnet[*].id
+    security_group_ids = [aws_security_group.no_cluster_sg.id]
   }
 }
 
-resource "aws_eks_node_group" "my" {
-  cluster_name    = aws_eks_cluster.my.name
-  node_group_name = "my-node-group"
-  node_role_arn   = aws_iam_role.my_node_group_role.arn
+resource "aws_eks_node_group" "no" {
+  cluster_name    = aws_eks_cluster.no.name
+  node_group_name = "no-node-group"
+  node_role_arn   = aws_iam_role.no_node_group_role.arn
   subnet_ids      = aws_subnet.my_subnet[*].id
    
   scaling_config {
@@ -112,12 +112,12 @@ resource "aws_eks_node_group" "my" {
 
   remote_access {
     ec2_ssh_key = var.ssh_key_name
-    source_security_group_ids = [aws_security_group.my_node_sg.id]
+    source_security_group_ids = [aws_security_group.no_node_sg.id]
   }
 }
 
-resource "aws_iam_role" "my_cluster_role" {
-  name = "uat-cluster-role"
+resource "aws_iam_role" "no_cluster_role" {
+  name = "no-cluster-role"
 
   assume_role_policy = <<EOF
 {
@@ -135,13 +135,13 @@ resource "aws_iam_role" "my_cluster_role" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "my_cluster_role_policy" {
-  role       = aws_iam_role.my_cluster_role.name
+resource "aws_iam_role_policy_attachment" "no_cluster_role_policy" {
+  role       = aws_iam_role.no_cluster_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
-resource "aws_iam_role" "my_node_group_role" {
-  name = "my-node-group-role"
+resource "aws_iam_role" "no_node_group_role" {
+  name = "no-node-group-role"
 
   assume_role_policy = <<EOF
 {
@@ -159,17 +159,17 @@ resource "aws_iam_role" "my_node_group_role" {
 EOF
 }
 
-resource "aws_iam_role_policy_attachment" "my_node_group_role_policy" {
-  role       = aws_iam_role.my_node_group_role.name
+resource "aws_iam_role_policy_attachment" "no_node_group_role_policy" {
+  role       = aws_iam_role.no_node_group_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
 }
 
-resource "aws_iam_role_policy_attachment" "my_node_group_cni_policy" {
-  role       = aws_iam_role.my_node_group_role.name
+resource "aws_iam_role_policy_attachment" "no_node_group_cni_policy" {
+  role       = aws_iam_role.no_node_group_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
 }
 
-resource "aws_iam_role_policy_attachment" "my_node_group_registry_policy" {
-  role       = aws_iam_role.my_node_group_role.name
+resource "aws_iam_role_policy_attachment" "no_node_group_registry_policy" {
+  role       = aws_iam_role.no_node_group_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
