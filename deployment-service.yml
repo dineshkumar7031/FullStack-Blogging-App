@@ -18,7 +18,8 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-      
+      imagePullSecrets:
+        - name: regcred # Reference to the Docker registry secret
 ---
 apiVersion: v1
 kind: Service
